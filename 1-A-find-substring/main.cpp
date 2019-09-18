@@ -17,6 +17,7 @@
 #include <vector>
 #include <string>
 
+std::vector<size_t> CalculatePrefixFunc(const std::string& str);
 std::vector<size_t> GetAllSubstringPositions(const std::string& str, const std::string& substr);
 
 int main() {
@@ -26,32 +27,37 @@ int main() {
   std::cin >> substr;
   std::cin >> str;
 
-  for (auto& ind : GetAllSubstringPositions(str, substr)) {
-    std::cout << ind << " ";
+  for (auto& pos : GetAllSubstringPositions(str, substr)) {
+    std::cout << pos << " ";
   }
 
   return 0;
 }
 
-std::vector<size_t> GetAllSubstringPositions(const std::string& str, const std::string& substr) {
-  std::vector<size_t> res;
-  std::vector<size_t> prefix_func(substr.length());
-
-  // Calculating prefix function for substring.
-  for (size_t i = 1; i < substr.length(); ++i) {
+std::vector<size_t> CalculatePrefixFunc(const std::string& str) {
+  std::vector<size_t> prefix_func(str.length());
+  for (size_t i = 1; i < str.length(); ++i) {
     size_t cur_prefix_size = prefix_func[i - 1];
     // "Jumping"
     while (cur_prefix_size) {
-      if (substr[i] == substr[cur_prefix_size]) {
+      if (str[i] == str[cur_prefix_size]) {
         prefix_func[i] = cur_prefix_size + 1;
         break;
       }
       cur_prefix_size = prefix_func[cur_prefix_size - 1];
     }
     if (!prefix_func[i]) {
-      prefix_func[i] = substr[0] == substr[i] ? 1 : 0;
+      prefix_func[i] = str[0] == str[i] ? 1 : 0;
     }
   }
+  return prefix_func;
+}
+
+std::vector<size_t> GetAllSubstringPositions(const std::string& str, const std::string& substr) {
+  std::vector<size_t> substr_pos;
+
+  // Calculating prefix function for substring.
+  std::vector<size_t> prefix_func = CalculatePrefixFunc(substr);
 
   // Calculating prefix size for every character in string.
   size_t cur_prefix_size = 0;
@@ -68,9 +74,9 @@ std::vector<size_t> GetAllSubstringPositions(const std::string& str, const std::
       cur_prefix_size = substr[0] == str[i] ? 1 : 0;
     }
     if (cur_prefix_size == substr.length()) {
-      res.push_back(i - substr.length() + 1);
+      substr_pos.push_back(i - substr.length() + 1);
     }
   }
 
-  return res;
+  return substr_pos;
 }
