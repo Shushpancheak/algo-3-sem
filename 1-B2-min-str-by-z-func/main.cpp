@@ -16,6 +16,7 @@
 #include <algorithm>
 
 std::string GetMinStrByZFunc(const std::vector<int>& z_func);
+char GetMinAvailableSymbol(const std::string& str, const std::vector<size_t>& forbidden_pos);
 
 int main() {
   std::vector<int> prefix_func;
@@ -30,12 +31,26 @@ int main() {
   return 0;
 }
 
+char GetMinAvailableSymbol(const std::string& str, const std::vector<size_t>& forbidden_pos) {
+  std::set<char> forbidden_symbols;
+  for (auto& pos : forbidden_pos) {
+    forbidden_symbols.insert(str[pos]);
+  }
+  char next_symbol = 'b';
+  for (; ; ++next_symbol) {
+    if (forbidden_symbols.find(next_symbol) == forbidden_symbols.end()) {
+      break;
+    }
+  }
+  return next_symbol;
+}
+
 std::string GetMinStrByZFunc(const std::vector<int>& z_func) {
-  std::string res;
-  res.reserve(z_func.size());
+  std::string min_str;
+  min_str.reserve(z_func.size());
 
   if (!z_func.empty()) {
-    res = "a";
+    min_str = "a";
   }
 
   // Borders of the right-most window
@@ -51,7 +66,7 @@ std::string GetMinStrByZFunc(const std::vector<int>& z_func) {
   for (int i = 1; i < static_cast<int>(z_func.size()); ++i) {
     if (z_func[i]) {
       // We are standing at the start of prefix, so adding 'a'.
-      res += 'a';
+      min_str += 'a';
 
       // If the current window is smaller than this, create the new
       // window and clear forbidden pos.
@@ -60,25 +75,20 @@ std::string GetMinStrByZFunc(const std::vector<int>& z_func) {
         right = i + z_func[i] - 1;
         forbidden_pos.clear();
       }
-      forbidden_pos.push_back(z_func[i]);
+
+      // Add to forbidden_pos only if the current window touches
+      // the right border of our window.
+      if (z_func[i] + i - 1 == right) {
+        forbidden_pos.push_back(z_func[i]);
+      }
     } else {
       // If we are within the current window, just copy...
       if (i <= right) {
-        res += res[i - left];
+        min_str += min_str[i - left];
       } else {
         // Choosing the next symbol that won't break
         // previous z-func values.
-        std::set<char> forbidden_symbols;
-        for (auto& pos : forbidden_pos) {
-          forbidden_symbols.insert(res[pos]);
-        }
-        char next_symbol = 'b';
-        for (; ; ++next_symbol) {
-          if (forbidden_symbols.find(next_symbol) == forbidden_symbols.end()) {
-            break;
-          }
-        }
-        res += next_symbol;
+        min_str += GetMinAvailableSymbol(min_str, forbidden_pos);
 
         // Creating new window with 0 size.
         left = right = i;
@@ -87,5 +97,5 @@ std::string GetMinStrByZFunc(const std::vector<int>& z_func) {
     }
   }
 
-  return res;
+  return min_str;
 }
