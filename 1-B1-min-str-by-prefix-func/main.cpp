@@ -14,6 +14,7 @@
 #include <string>
 #include <set>
 
+char GetMinAvailableSymbol(const std::set<char>& forbidden_symbols);
 std::string GetMinStrByPrefixFunc(const std::vector<unsigned>& prefix_func);
 
 int main() {
@@ -29,33 +30,38 @@ int main() {
   return 0;
 }
 
+char GetMinAvailableSymbol(const std::set<char>& forbidden_symbols) {
+  char next_symbol = 'b';
+  for (; ; ++next_symbol) {
+    if (forbidden_symbols.find(next_symbol) == forbidden_symbols.end()) {
+      break;
+    }
+  }
+  return next_symbol;
+}
+
 std::string GetMinStrByPrefixFunc(const std::vector<unsigned>& prefix_func) {
-  std::string res;
-  res.reserve(prefix_func.size());
+  std::string min_str;
+  min_str.reserve(prefix_func.size());
 
   if (!prefix_func.empty()) {
-    res = "a";
+    min_str = "a";
   }
   for (size_t i = 1; i < prefix_func.size(); ++i) {
     if (prefix_func[i]) {
-      res += res[prefix_func[i] - 1];
+      min_str += min_str[prefix_func[i] - 1];
     } else {
       std::set<char> forbidden_symbols;
+
       size_t cur_prefix_size = prefix_func[i - 1];
       while (cur_prefix_size) {
-        forbidden_symbols.insert(res[cur_prefix_size]);
+        forbidden_symbols.insert(min_str[cur_prefix_size]);
         cur_prefix_size = prefix_func[cur_prefix_size - 1];
       }
 
-      char next_symbol = 'b';
-      for (; ; ++next_symbol) {
-        if (forbidden_symbols.find(next_symbol) == forbidden_symbols.end()) {
-          break;
-        }
-      }
-      res += next_symbol;
+      min_str += GetMinAvailableSymbol(forbidden_symbols);
     }
   }
 
-  return res;
+  return min_str;
 }
