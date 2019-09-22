@@ -36,7 +36,7 @@ int main() {
 
 std::vector<size_t> CalculatePrefixFunc(const std::string& str) {
   std::vector<size_t> prefix_func(str.length());
-  for (size_t i = 1; i < str.length(); ++i) {
+  for (size_t i = 1, str_length = str.length(); i < str_length(); ++i) {
     size_t cur_prefix_size = prefix_func[i - 1];
     // "Jumping"
     while (cur_prefix_size) {
@@ -61,7 +61,7 @@ std::vector<size_t> GetAllSubstringPositions(const std::string& str, const std::
 
   // Calculating prefix size for every character in string.
   size_t cur_prefix_size = 0;
-  for (size_t i = 0; i < str.length(); ++i) {
+  for (size_t i = 0, str_length = str.length(); i < str_length; ++i) {
     // "Jumping"
     while (cur_prefix_size) {
       if (cur_prefix_size < substr.length() && str[i] == substr[cur_prefix_size]) {
