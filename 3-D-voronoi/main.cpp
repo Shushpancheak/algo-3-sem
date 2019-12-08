@@ -41,8 +41,8 @@ const std::streamsize PRECISION    = 12;
 const size_t CHAN_TIME_VARIANTS_COUNT = 6;
 
 enum ChanTimeVariants {
-  LEFT_HULL_TURN         = 0,
-  RIGHT_HULL_TURN        = 1,
+  LEFT_EVENT         = 0,
+  RIGHT_EVENT        = 1,
   BRIDGE_RIGHT_NEXT_TURN = 2,
   BRIDGE_RIGHT_PREV_TURN = 3,
   BRIDGE_LEFT_PREV_TURN  = 4,
@@ -246,6 +246,19 @@ std::vector<PointsEvent*> GetEventsInHullBuilding(
     std::vector<LinkedPoint3>& points,
     const size_t begin,
     const size_t end) {
+  // Using Chan's algorithm.
+  // Main idea:
+  // Divide the given set into two convex hulls using this algorithm
+  // recursively. Then merge two convex hulls increasing ``time'' t
+  // for the projection (x', y') = (x, z - ty) and watching over turns
+  // of certain vectors. It is stated that the resulting convex hull
+  // will consist of those points that were the ends of bridge (which is the
+  // pair lowest for left and right convex hulls) and exterior points
+  // (unused points are deleted or inserted).
+  // Additionally, we should keep track of events (insertions and deletions
+  // of points) in order to keep left and right hulls convex.
+  // That leaves us with 6 possible event types when we are merging two convex hulls.
+  
   if (end - begin == 1) {
     return std::vector<PointsEvent*>();
   }
@@ -262,23 +275,23 @@ std::vector<PointsEvent*> GetEventsInHullBuilding(
   size_t cur_event_1 = 0;
   size_t cur_event_2 = 0;
   for (double cur_time = -INF; ; ) {
-    LinkedPoint3* cur_left_point  = nullptr;
-    LinkedPoint3* cur_right_point = nullptr;
+    LinkedPoint3* left_event_point  = nullptr;
+    LinkedPoint3* right_event_point = nullptr;
     double new_time[6]  = {};
 
     if (cur_event_1 < half_events[0].size()) {
-      cur_left_point = half_events[0][cur_event_1];
-      new_time[LEFT_HULL_TURN] = GetTimeOfTurning(cur_left_point->prev_point,
-                                     cur_left_point, cur_left_point->next_point);
+      left_event_point = half_events[0][cur_event_1];
+      new_time[LEFT_EVENT] = GetTimeOfTurning(left_event_point->prev_point,
+                                 left_event_point, left_event_point->next_point);
     } else {
-      new_time[LEFT_HULL_TURN] = INF;
+      new_time[LEFT_EVENT] = INF;
     }
     if (cur_event_2 < half_events[1].size()) {
-      cur_right_point = half_events[1][cur_event_2];
-      new_time[RIGHT_HULL_TURN] = GetTimeOfTurning(cur_right_point->prev_point,
-                                     cur_right_point, cur_right_point->next_point);
+      right_event_point = half_events[1][cur_event_2];
+      new_time[RIGHT_EVENT] = GetTimeOfTurning(right_event_point->prev_point,
+                                  right_event_point, right_event_point->next_point);
     } else {
-      new_time[RIGHT_HULL_TURN] = INF;
+      new_time[RIGHT_EVENT] = INF;
     }
     new_time[BRIDGE_RIGHT_NEXT_TURN] =
         GetTimeOfTurning(bridge_pt_1, bridge_pt_2, bridge_pt_2->next_point);
@@ -302,18 +315,20 @@ std::vector<PointsEvent*> GetEventsInHullBuilding(
     }
 
     switch (min_time_ind) {
-    case LEFT_HULL_TURN:
-      if (cur_left_point->pos.x < bridge_pt_1->pos.x) {
-        res_events.push_back(cur_left_point);
+    case LEFT_EVENT:
+      // If event happened inside built convex hull -- ignore it.
+      if (left_event_point->pos.x < bridge_pt_1->pos.x) {
+        res_events.push_back(left_event_point);
       }
-      cur_left_point->DeleteOrInsert();
+      left_event_point->DeleteOrInsert();
       cur_event_1++;
       break;
-    case RIGHT_HULL_TURN:
-      if (cur_right_point->pos.x > bridge_pt_2->pos.x) {
-        res_events.push_back(cur_right_point);
+    case RIGHT_EVENT:
+      // If event happened inside built convex hull -- ignore it.
+      if (right_event_point->pos.x > bridge_pt_2->pos.x) {
+        res_events.push_back(right_event_point);
       }
-      cur_right_point->DeleteOrInsert();
+      right_event_point->DeleteOrInsert();
       cur_event_2++;
       break;
     case BRIDGE_RIGHT_NEXT_TURN:
@@ -339,6 +354,8 @@ std::vector<PointsEvent*> GetEventsInHullBuilding(
     cur_time = min_time;
   }
 
+  // Events added to the result vector, but the next stage should get
+  // the original linked list of points, hence the reverse of deletion and insertion.
   ReverseDeletionAndInsertion(points, middle, res_events, bridge_pt_1, bridge_pt_2);
 
   return res_events;
