@@ -40,10 +40,6 @@ const double EPS_ROTATION = 1e-2;
 
 struct Segment;
 
-struct GeometryObject {
-  virtual ~GeometryObject() = default;
-};
-
 struct Vector3 {
   double x = 0;
   double y = 0;
@@ -68,7 +64,7 @@ struct Vector3 {
   Vector3& operator=(const Vector3& vector3);
 };
 
-struct Point3 : GeometryObject {
+struct Point3 {
   Vector3 pos = {};
 
   friend double GetDistance(const Point3& point_1, const Point3& point_2);
@@ -92,7 +88,7 @@ struct LinkedPoint3 : Point3 {
 
 typedef LinkedPoint3 PointsEvent;
 
-struct Segment : GeometryObject {
+struct Segment {
   Point3 start = {};
   Point3 end   = {};
 
@@ -104,7 +100,7 @@ struct Segment : GeometryObject {
   ~Segment() = default;
 };
 
-struct Face : GeometryObject {
+struct Face {
   Face(std::initializer_list<size_t> list);
 
   size_t point_id[3];
@@ -113,7 +109,7 @@ struct Face : GeometryObject {
   friend bool operator<(const Face& f1, const Face& f2);
 };
 
-struct Hull : GeometryObject {
+struct Hull {
   std::vector<Face> faces;
 
   void SortFacesLexicographically();
