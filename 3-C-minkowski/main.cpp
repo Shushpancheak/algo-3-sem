@@ -19,10 +19,6 @@ const double EPS = 1e-12;
 
 struct Segment;
 
-struct GeometryObject {
-  virtual ~GeometryObject() = default;
-};
-
 struct Vector2 {
   double x;
   double y;
@@ -42,7 +38,7 @@ struct Vector2 {
   Vector2& operator=(const Vector2& vector);
 };
 
-struct Point2 : GeometryObject {
+struct Point2 {
   Vector2 pos;
 
   Point2& operator+=(const Vector2& vector);
@@ -55,7 +51,7 @@ struct Point2 : GeometryObject {
   ~Point2() = default;
 };
 
-struct Segment : GeometryObject {
+struct Segment {
   Point2 start;
   Point2 end;
 
