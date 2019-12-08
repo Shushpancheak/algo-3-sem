@@ -72,6 +72,8 @@ struct ConvexPolygon {
 
   auto GetLowestRightmostPoint() const;
   auto GetNextPoint(const std::vector<Point2>::const_iterator& point) const;
+  Point2& operator[](size_t i);
+  const Point2& operator[](size_t i) const;
   friend std::istream& operator>>(std::istream& stream, ConvexPolygon& polygon);
   friend ConvexPolygon operator-(const ConvexPolygon& polygon);
   // Minkowski sums
@@ -157,7 +159,7 @@ std::istream& operator>>(std::istream& stream, ConvexPolygon& polygon) {
   polygon.points.resize(vertices_count);
 
   for (size_t i = 0; i < vertices_count; ++i) {
-    std::cin >> polygon.points[i];
+    std::cin >> polygon[i];
   }
 
   return stream;
@@ -193,6 +195,16 @@ auto ConvexPolygon::GetLowestRightmostPoint() const {
 
 auto ConvexPolygon::GetNextPoint(const std::vector<Point2>::const_iterator& point) const {
   return point + 1 == points.end() ? points.begin() : point + 1;
+}
+
+
+Point2& ConvexPolygon::operator[](const size_t i) {
+  return points[i];
+}
+
+
+const Point2& ConvexPolygon::operator[](size_t i) const {
+  return points[i];
 }
 
 
