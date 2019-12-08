@@ -56,19 +56,7 @@ struct Point3 {
   ~Point3() = default;
 };
 
-struct Line {
-  virtual ~Line() = default;
-};
-
-struct LineEquation : Line {
-  double A;
-  double B;
-  double C;
-
-  ~LineEquation() = default;
-};
-
-struct LineDirection : Line {
+struct LineDirection {
   Point3 point;
   Vector3 direction;
 
