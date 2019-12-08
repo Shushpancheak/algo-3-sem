@@ -26,10 +26,6 @@ const double EPS = 1e-12;
 
 struct Segment;
 
-struct GeometryObject {
-  virtual ~GeometryObject() = default;
-};
-
 struct Vector3 {
   double x;
   double y;
@@ -48,7 +44,7 @@ struct Vector3 {
   Vector3& operator=(const Vector3& vector3);
 };
 
-struct Point3 : GeometryObject {
+struct Point3 {
   Vector3 pos;
 
   friend double GetDistance(const Point3& point_1, const Point3& point_2);
@@ -60,7 +56,7 @@ struct Point3 : GeometryObject {
   ~Point3() = default;
 };
 
-struct Line : GeometryObject {
+struct Line {
   virtual ~Line() = default;
 };
 
@@ -85,7 +81,7 @@ struct LineDirection : Line {
   ~LineDirection() = default;
 };
 
-struct Segment : GeometryObject {
+struct Segment {
   Point3 start;
   Point3 end;
 
