@@ -38,6 +38,17 @@ const double          EPS          = 1e-8;
 const double          EPS_ROTATION = 1e-8;
 const std::streamsize PRECISION    = 12;
 
+const size_t CHAN_TIME_VARIANTS_COUNT = 6;
+
+enum ChanTimeVariants {
+  LEFT_HULL_TURN         = 0,
+  RIGHT_HULL_TURN        = 1,
+  BRIDGE_RIGHT_NEXT_TURN = 2,
+  BRIDGE_RIGHT_PREV_TURN = 3,
+  BRIDGE_LEFT_PREV_TURN  = 4,
+  BRIDGE_LEFT_NEXT_TURN  = 5
+};
+
 struct Segment;
 
 struct Vector3 {
@@ -257,24 +268,28 @@ std::vector<PointsEvent*> GetEventsInHullBuilding(
 
     if (cur_event_1 < half_events[0].size()) {
       cur_left_point = half_events[0][cur_event_1];
-      new_time[0] = GetTimeOfTurning(cur_left_point->prev_point,
+      new_time[LEFT_HULL_TURN] = GetTimeOfTurning(cur_left_point->prev_point,
                                      cur_left_point, cur_left_point->next_point);
     } else {
-      new_time[0] = INF;
+      new_time[LEFT_HULL_TURN] = INF;
     }
     if (cur_event_2 < half_events[1].size()) {
       cur_right_point = half_events[1][cur_event_2];
-      new_time[1] = GetTimeOfTurning(cur_right_point->prev_point,
+      new_time[RIGHT_HULL_TURN] = GetTimeOfTurning(cur_right_point->prev_point,
                                      cur_right_point, cur_right_point->next_point);
     } else {
-      new_time[1] = INF;
+      new_time[RIGHT_HULL_TURN] = INF;
     }
-    new_time[2] = GetTimeOfTurning(bridge_pt_1, bridge_pt_2, bridge_pt_2->next_point);
-    new_time[3] = GetTimeOfTurning(bridge_pt_1, bridge_pt_2->prev_point, bridge_pt_2);
-    new_time[4] = GetTimeOfTurning(bridge_pt_1->prev_point, bridge_pt_1, bridge_pt_2);
-    new_time[5] = GetTimeOfTurning(bridge_pt_1, bridge_pt_1->next_point, bridge_pt_2);
+    new_time[BRIDGE_RIGHT_NEXT_TURN] =
+        GetTimeOfTurning(bridge_pt_1, bridge_pt_2, bridge_pt_2->next_point);
+    new_time[BRIDGE_RIGHT_PREV_TURN] =
+        GetTimeOfTurning(bridge_pt_1, bridge_pt_2->prev_point, bridge_pt_2);
+    new_time[BRIDGE_LEFT_PREV_TURN] =
+        GetTimeOfTurning(bridge_pt_1->prev_point, bridge_pt_1, bridge_pt_2);
+    new_time[BRIDGE_LEFT_NEXT_TURN] =
+        GetTimeOfTurning(bridge_pt_1, bridge_pt_1->next_point, bridge_pt_2);
 
-    size_t min_time_ind = 7;
+    size_t min_time_ind = CHAN_TIME_VARIANTS_COUNT;
     double min_time     = INF;
     for (int i = 0; i < 6; i++) {
       if (new_time[i] > cur_time && new_time[i] < min_time) {
@@ -282,38 +297,38 @@ std::vector<PointsEvent*> GetEventsInHullBuilding(
         min_time_ind = i;
       }
     }
-    if (min_time_ind == 7) {
+    if (min_time_ind == CHAN_TIME_VARIANTS_COUNT) {
       break;
     }
 
     switch (min_time_ind) {
-    case 0:
+    case LEFT_HULL_TURN:
       if (cur_left_point->pos.x < bridge_pt_1->pos.x) {
         res_events.push_back(cur_left_point);
       }
       cur_left_point->DeleteOrInsert();
       cur_event_1++;
       break;
-    case 1:
+    case RIGHT_HULL_TURN:
       if (cur_right_point->pos.x > bridge_pt_2->pos.x) {
         res_events.push_back(cur_right_point);
       }
       cur_right_point->DeleteOrInsert();
       cur_event_2++;
       break;
-    case 2:
+    case BRIDGE_RIGHT_NEXT_TURN:
       res_events.push_back(bridge_pt_2);
       bridge_pt_2 = bridge_pt_2->next_point;
       break;
-    case 3:
+    case BRIDGE_RIGHT_PREV_TURN:
       bridge_pt_2 = bridge_pt_2->prev_point;
       res_events.push_back(bridge_pt_2);
       break;
-    case 4:
+    case BRIDGE_LEFT_PREV_TURN:
       res_events.push_back(bridge_pt_1);
       bridge_pt_1 = bridge_pt_1->prev_point;
       break;
-    case 5:
+    case BRIDGE_LEFT_NEXT_TURN:
       bridge_pt_1 = bridge_pt_1->next_point;
       res_events.push_back(bridge_pt_1);
       break;
