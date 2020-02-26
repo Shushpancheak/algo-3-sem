@@ -58,7 +58,6 @@ public:
   BigInteger& operator--();
   BigInteger  operator--(int);
 
-  // ReSharper disable once CppInconsistentNaming
   std::string toString() const;
 
   explicit operator int() const;
@@ -729,4 +728,4 @@ inline details::QuotientAndRemainder Divide(
   return result;
 }
 
-#endif
+#endif /* BIG_INTEGER */
